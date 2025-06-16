@@ -2,11 +2,12 @@
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedList;
-import java.util.List;
+
 
 public class SolBacktracking {
     private LinkedList<Maquina> mejorSolucion;
-    private int piezastotales, estadosGenerados,puestasFunsionamiento;
+    private LinkedList<LinkedList<Maquina>> cantSolEncontradas;
+    private int piezastotales, estadosGenerados;
 
 
     public SolBacktracking(int piezasTotales) {
@@ -14,6 +15,8 @@ public class SolBacktracking {
         this.piezastotales = piezasTotales;
         estadosGenerados = 0;
         mejorSolucion = new LinkedList<>();
+        cantSolEncontradas = new LinkedList<>();
+
     }
 
     public int getPiezastotales() {
@@ -25,21 +28,18 @@ public class SolBacktracking {
         if(!maquinas.isEmpty()) {
             System.out.println("\n--------------Solucion Backtracking---------------");
             //Lo ordeno de mayor a menor por la cant de piezas que hacen cada maquina
-            Collections.sort(mejorSolucion);
+            Collections.sort(maquinas);
             //Si las piezas totales son menores a la cant de piezas que produce la maquina del medio
             //Ordeno las maquinas de menor produccion a mayor
-            int prom= maquinas.get(maquinas.size()/2).getPiezas();
-            if (prom > piezastotales) {
-                maquinas.sort(Comparator.reverseOrder());
-            }
-            this.puestasFunsionamiento = 0;
+
+
             //Le paso la primera maquina del arreglo ordenado y llamo a solucion back y prueba
             for (Maquina ma : maquinas) {
                 solBack(maquinas,ma, new LinkedList<>(), 0);
             }
             //si la solucion no esta vacia la imprimo
             if(!mejorSolucion.isEmpty()){
-                mostrarSulucion(mejorSolucion);
+                mostrarSulucion();
             }
             else{
                 System.out.println("No se encontro una solucion");
@@ -55,10 +55,14 @@ public class SolBacktracking {
         sumaPiezas+=maq.getPiezas();
 
         if(sumaPiezas==piezastotales&& esSolucion(temp)) {
+            cantSolEncontradas.add(temp);
             mejorSolucion.clear();
             mejorSolucion.addAll(temp);
         }
         else {
+            if (sumaPiezas-piezastotales>=maquinas.get((maquinas.size()/2)-1).getPiezas()) {
+                maquinas.sort(Comparator.reverseOrder());
+            }
             if (sumaPiezas<piezastotales&&esSolucion(temp)) {
                 for (Maquina m : maquinas) {
                     solBack(maquinas,m,temp,sumaPiezas);
@@ -69,17 +73,18 @@ public class SolBacktracking {
     }
 
 
-    private void mostrarSulucion(LinkedList<Maquina> mejorSolucion) {
+    private void mostrarSulucion() {
         System.out.println("Mejor Solucion obtenida: ");
         System.out.println("Piezas Totales: " + piezastotales);
         mejorSolucion.forEach(m -> {
             System.out.println(m.toString());
         });
-        System.out.println("Puestas en Funcionamiento: " + puestasFunsionamiento);
+        System.out.println("Cant de Maquinas usadas: " + mejorSolucion.size());
+        System.out.println("Cant de Soluciones encontradas: " + cantSolEncontradas.size());
         System.out.println("Estados Generados: " + estadosGenerados);
 
     }
-    private boolean esSolucion(LinkedList<Maquina> temp) {
+    private boolean esSolucion(LinkedList<Maquina> temp){
         if(mejorSolucion.isEmpty()) {
             return true;
         }
