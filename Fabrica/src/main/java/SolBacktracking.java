@@ -1,22 +1,31 @@
-
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.LinkedList;
 
+/*
+ * SolBacktracking implementa un algoritmo de backtracking para encontrar combinaciones
+ * de máquinas cuya suma de piezas iguale un total dado, minimizando la cantidad de máquinas usadas.
+ *
+ * Estrategia de resolución:
+ * - Se genera un árbol de exploración donde cada nodo representa la inclusión de una máquina en la solución parcial.
+ * - Cada estado mantiene una lista temporal de máquinas y la suma actual de piezas.
+ * - Un estado es final cuando la suma de piezas alcanza el total requerido (piezasTotales).
+ * - Un estado es solución si cumple lo anterior y usa menos máquinas que la mejor solución encontrada hasta ese momento.
+ * - Se aplican podas para evitar continuar la exploración si:
+ *   - La suma supera el total.
+ *   - La solución parcial ya no puede ser mejor que la mejor conocida.
+ * - Las máquinas se ordenan para facilitar la poda y mejorar la eficiencia de búsqueda.
+ */
 
 public class SolBacktracking {
-    private LinkedList<Maquina> mejorSolucion;
-    private LinkedList<LinkedList<Maquina>> cantSolEncontradas;
-    private int piezastotales, estadosGenerados;
-
+    private LinkedList<Maquina> mejorSolucion; // Guarda la mejor solución (menos máquinas)
+    private LinkedList<LinkedList<Maquina>> cantSolEncontradas; // Guarda todas las soluciones válidas encontradas para ver cuantas encontro
+    private int piezastotales, estadosGenerados; // Total requerido de piezas y contador de estados explorados
 
     public SolBacktracking(int piezasTotales) {
-
         this.piezastotales = piezasTotales;
         estadosGenerados = 0;
         mejorSolucion = new LinkedList<>();
         cantSolEncontradas = new LinkedList<>();
-
     }
 
     public int getPiezastotales() {
@@ -24,20 +33,19 @@ public class SolBacktracking {
     }
 
     public void solBack(LinkedList<Maquina> maquinas){
-        //me aseguro que el arreglo de maquinas no este vacio
+        // Verifica que haya máquinas disponibles para explorar
         if(!maquinas.isEmpty()) {
             System.out.println("\n--------------Solucion Backtracking---------------");
-            //Lo ordeno de mayor a menor por la cant de piezas que hacen cada maquina
+
+            // Ordena las máquinas (por cantidad de piezas) para favorecer las podas
             Collections.sort(maquinas);
-            //Si las piezas totales son menores a la cant de piezas que produce la maquina del medio
-            //Ordeno las maquinas de menor produccion a mayor
 
-
-            //Le paso la primera maquina del arreglo ordenado y llamo a solucion back y prueba
+            // Inicia la exploración del árbol con cada máquina como punto de partida
             for (Maquina ma : maquinas) {
-                solBack(maquinas,ma, new LinkedList<>(), 0);
+                solBack(maquinas, ma, new LinkedList<>(), 0);
             }
-            //si la solucion no esta vacia la imprimo
+
+            // Muestra la mejor solución encontrada, si existe
             if(!mejorSolucion.isEmpty()){
                 mostrarSulucion();
             }
@@ -47,32 +55,33 @@ public class SolBacktracking {
         }
     }
 
+    private void solBack(LinkedList<Maquina> maquinas, Maquina maq, LinkedList<Maquina> temp , int sumaPiezas) {
+        estadosGenerados++; // Cuenta el estado actual generado
+        temp.add(maq); // Agrega la máquina actual a la solución parcial
+        sumaPiezas += maq.getPiezas(); // Actualiza la suma de piezas
 
-    private void solBack(LinkedList<Maquina> maquinas,Maquina maq, LinkedList<Maquina> temp ,int sumaPiezas) {
-
-        estadosGenerados++;
-        temp.add(maq);
-        sumaPiezas+=maq.getPiezas();
-
-        if(sumaPiezas==piezastotales&& esSolucion(temp)) {
-            cantSolEncontradas.add(temp);
-            mejorSolucion.clear();
+        // Caso base: se alcanza exactamente el total de piezas deseado
+        if (sumaPiezas == piezastotales && esSolucion(temp)) {
+            cantSolEncontradas.add(new LinkedList<>(temp)); // Guarda copia de la solución encontrada
+            mejorSolucion.clear(); // Reemplaza la mejor solución
             mejorSolucion.addAll(temp);
-        }
-        else {
-            if (sumaPiezas-piezastotales>=maquinas.get((maquinas.size()/2)-1).getPiezas()) {
-                maquinas.sort(Comparator.reverseOrder());
-            }
-            if (sumaPiezas<piezastotales&&esSolucion(temp)) {
+        } else {
+            // Si aún se puede seguir explorando (no se supera el total y la solución puede mejorar)
+            if (sumaPiezas < piezastotales && esSolucion(temp)) {
                 for (Maquina m : maquinas) {
-                    solBack(maquinas,m,temp,sumaPiezas);
-                    temp.removeLast();
+                    solBack(maquinas, m, temp, sumaPiezas); // Explora con cada máquina
+                    temp.removeLast(); // Deshace el paso (backtracking)
                 }
             }
         }
     }
-
-
+    // Determina si la solución actual es mejor que la guardada (menos máquinas)
+    private boolean esSolucion(LinkedList<Maquina> temp){
+        if (mejorSolucion.isEmpty()) {
+            return true;
+        }
+        return temp.size() < mejorSolucion.size();
+    }
     private void mostrarSulucion() {
         System.out.println("Mejor Solucion obtenida: ");
         System.out.println("Piezas Totales: " + piezastotales);
@@ -82,12 +91,7 @@ public class SolBacktracking {
         System.out.println("Cant de Maquinas usadas: " + mejorSolucion.size());
         System.out.println("Cant de Soluciones encontradas: " + cantSolEncontradas.size());
         System.out.println("Estados Generados: " + estadosGenerados);
+    }
 
-    }
-    private boolean esSolucion(LinkedList<Maquina> temp){
-        if(mejorSolucion.isEmpty()) {
-            return true;
-        }
-        return temp.size()<mejorSolucion.size();
-    }
+
 }
